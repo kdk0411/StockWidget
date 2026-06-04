@@ -1,0 +1,37 @@
+{
+  "name": "stockwidget",
+  "version": "1.0.0",
+  "description": "StockWidget - 윈도우 우측 하단 주식 시세 위젯",
+  "main": "main.js",
+  "author": "",
+  "license": "MIT",
+  "scripts": {
+    "geticon": "node gen-icon.js",
+    "start": "electron .",
+    "dist": "npm run geticon && electron-builder --win"
+  },
+  "build": {
+    "appId": "com.stockwidget.app",
+    "productName": "StockWidget",
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer/**/*",
+      "assets/**/*"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true
+    }
+  },
+  "devDependencies": {
+    "electron": "^31.0.0",
+    "electron-builder": "^24.13.3"
+  }
+}
