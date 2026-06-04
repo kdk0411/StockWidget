@@ -1,0 +1,31 @@
+# 의존성 (npm install 로 재생성)
+node_modules/
+
+# 빌드 산출물 (electron-builder 결과물, 용량 큼)
+dist/
+out/
+build/
+*.exe
+*.blockmap
+
+# 로그
+build.log
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 런타임/사용자 설정 (앱이 %APPDATA% 에 생성)
+config.json
+
+# OS / 에디터
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+*.swp
+
+# 환경 변수
+.env
+.env.local
