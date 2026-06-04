@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <title>StockWidget 설정</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Malgun Gothic", "Segoe UI", sans-serif;
+      }
+      body {
+        background: #14161e;
+        color: #e8eaed;
+        padding: 16px;
+      }
+      h1 {
+        font-size: 15px;
+        margin-bottom: 4px;
+      }
+      .desc {
+        font-size: 11px;
+        color: #9aa0a6;
+        margin-bottom: 14px;
+        line-height: 1.5;
+      }
+      .stock {
+        background: #1b1e27;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 10px;
+        padding: 10px;
+        margin-bottom: 10px;
+      }
+      .stock .idx {
+        font-size: 11px;
+        color: #9aa0a6;
+        margin-bottom: 6px;
+      }
+      .field {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 6px;
+      }
+      .field label {
+        width: 80px;
+        font-size: 12px;
+        color: #c4c7cc;
+      }
+      .field input {
+        flex: 1;
+        background: #2a2d36;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 7px;
+        padding: 7px 9px;
+        color: #fff;
+        font-size: 12px;
+      }
+      .field input:focus {
+        outline: 1px solid #22c55e;
+      }
+      #addBtn {
+        width: 100%;
+        background: transparent;
+        border: 1px dashed rgba(255, 255, 255, 0.18);
+        color: #9aa0a6;
+        border-radius: 10px;
+        padding: 10px;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        margin-bottom: 14px;
+      }
+      #addBtn:hover:not(:disabled) {
+        border-color: #22c55e;
+        color: #22c55e;
+      }
+      #addBtn:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+      .stock .head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 6px;
+      }
+      .stock .remove {
+        background: transparent;
+        border: none;
+        color: #9aa0a6;
+        font-size: 16px;
+        line-height: 1;
+        cursor: pointer;
+        padding: 2px 6px;
+        border-radius: 6px;
+      }
+      .stock .remove:hover {
+        background: #3a3d46;
+        color: #f04452;
+      }
+      #devbox {
+        background: #1b1e27;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 10px;
+        padding: 10px 12px;
+        margin-bottom: 14px;
+      }
+      #devbox summary {
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 700;
+        color: #c4c7cc;
+      }
+      .devdesc {
+        font-size: 11px;
+        color: #9aa0a6;
+        line-height: 1.6;
+        margin: 8px 0;
+      }
+      .devdesc code {
+        background: #2a2d36;
+        padding: 1px 4px;
+        border-radius: 4px;
+        color: #22c55e;
+      }
+      .devfield {
+        margin-bottom: 8px;
+      }
+      .devfield label {
+        display: block;
+        font-size: 11px;
+        color: #9aa0a6;
+        margin-bottom: 3px;
+      }
+      .ep {
+        width: 100%;
+        background: #2a2d36;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 7px;
+        padding: 7px 9px;
+        color: #fff;
+        font-size: 11px;
+        font-family: Consolas, monospace;
+      }
+      .ep:focus {
+        outline: 1px solid #22c55e;
+      }
+      #resetEp {
+        width: 100%;
+        background: #2a2d36;
+        color: #e8eaed;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 8px;
+        padding: 8px;
+        font-size: 12px;
+        cursor: pointer;
+        margin-top: 4px;
+      }
+      #resetEp:hover {
+        background: #3a3d46;
+      }
+      .interval {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 6px 0 16px;
+        font-size: 12px;
+      }
+      .interval input {
+        width: 70px;
+        background: #2a2d36;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 7px;
+        padding: 7px 9px;
+        color: #fff;
+      }
+      .actions {
+        display: flex;
+        gap: 8px;
+      }
+      button {
+        flex: 1;
+        border: none;
+        border-radius: 8px;
+        padding: 10px;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      #save {
+        background: #22c55e;
+        color: #08240f;
+      }
+      #save:hover {
+        background: #2ad36a;
+      }
+      #cancel {
+        background: #2a2d36;
+        color: #e8eaed;
+      }
+      #cancel:hover {
+        background: #3a3d46;
+      }
+      #toast {
+        text-align: center;
+        font-size: 12px;
+        color: #22c55e;
+        height: 16px;
+        margin-top: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>종목 설정 (최대 4개)</h1>
+    <p class="desc">
+      종목 코드(예: A035420)를 입력하세요.<br />
+      평단가·보유 수량은 선택이지만, <b>입력하려면 둘 다</b> 넣어야 합니다.<br />
+      둘을 입력하면 위젯·자세히 보기에 <b>내 수익률(±%)</b>과 평가손익(±원)이 표시됩니다.
+      (수량은 소수점 매수 가능)
+    </p>
+
+    <div id="stocks"></div>
+
+    <button id="addBtn">+ 종목 추가</button>
+
+    <div class="interval">
+      <label>갱신 주기</label>
+      <input type="number" id="interval" min="1" step="1" /> 초
+    </div>
+
+    <details id="devbox">
+      <summary>개발자 설정 (API 엔드포인트)</summary>
+      <p class="devdesc">
+        토스가 API 주소를 바꾸면 여기서 수정하세요. 치환 키워드:
+        <code>{codes}</code>=종목코드들(콤마), <code>{code}</code>=단일 코드,
+        <code>{num}</code>=A 제외한 숫자.
+      </p>
+      <div class="devfield">
+        <label>시세 API (price)</label>
+        <input class="ep" id="epPrice" spellcheck="false" />
+      </div>
+      <div class="devfield">
+        <label>종목정보 API (info)</label>
+        <input class="ep" id="epInfo" spellcheck="false" />
+      </div>
+      <div class="devfield">
+        <label>로고 이미지 URL (logo)</label>
+        <input class="ep" id="epLogo" spellcheck="false" />
+      </div>
+      <button id="resetEp" type="button">기본값으로 초기화</button>
+    </details>
+
+    <div class="actions">
+      <button id="cancel">닫기</button>
+      <button id="save">저장</button>
+    </div>
+    <div id="toast"></div>
+
+    <script>
+      const MAX = 4;
+      const stocksDiv = document.getElementById("stocks");
+      const addBtn = document.getElementById("addBtn");
+      const intervalInput = document.getElementById("interval");
+      const toast = document.getElementById("toast");
+
+      function addRow(code = "", avg = "", qty = "") {
+        if (stocksDiv.children.length >= MAX) return;
+        const div = document.createElement("div");
+        div.className = "stock";
+        div.innerHTML = `
+          <div class="head">
+            <span class="idx"></span>
+            <button class="remove" title="삭제">✕</button>
+          </div>
+          <div class="field">
+            <label>종목 코드</label>
+            <input class="code" value="${code}" placeholder="A035420" />
+          </div>
+          <div class="field">
+            <label>내 평단가</label>
+            <input class="avg" type="number" value="${avg}" placeholder="예: 274000" />
+          </div>
+          <div class="field">
+            <label>보유 수량</label>
+            <input class="qty" type="number" step="any" min="0" value="${qty}" placeholder="예: 1.5 (소수점 가능, 선택)" />
+          </div>`;
+        div.querySelector(".remove").addEventListener("click", () => {
+          // 최소 1개는 남긴다
+          if (stocksDiv.children.length <= 1) return;
+          div.remove();
+          refresh();
+        });
+        stocksDiv.appendChild(div);
+        refresh();
+      }
+
+      // 번호 다시 매기고, +버튼/삭제버튼 상태 갱신
+      function refresh() {
+        const rows = [...stocksDiv.children];
+        rows.forEach((r, i) => (r.querySelector(".idx").textContent = `종목 ${i + 1}`));
+        addBtn.disabled = rows.length >= MAX;
+        // 1개만 남았으면 삭제 버튼 숨김
+        rows.forEach((r) => {
+          r.querySelector(".remove").style.visibility = rows.length <= 1 ? "hidden" : "visible";
+        });
+      }
+
+      const epPrice = document.getElementById("epPrice");
+      const epInfo = document.getElementById("epInfo");
+      const epLogo = document.getElementById("epLogo");
+
+      function fillEndpoints(ep) {
+        epPrice.value = ep.price || "";
+        epInfo.value = ep.info || "";
+        epLogo.value = ep.logo || "";
+      }
+
+      async function init() {
+        const cfg = await window.api.getConfig();
+        const list = cfg.stocks && cfg.stocks.length ? cfg.stocks.slice(0, MAX) : [{}];
+        list.forEach((s) => addRow(s.code || "", s.avgPrice || "", s.qty || ""));
+        intervalInput.value = cfg.intervalSec || 2;
+        fillEndpoints(cfg.endpoints || {});
+      }
+
+      // 초기화: 현재(기본) 엔드포인트로 입력칸을 되돌린다. (저장해야 실제 적용)
+      document.getElementById("resetEp").addEventListener("click", async () => {
+        const def = await window.api.getDefaults();
+        fillEndpoints(def.endpoints);
+        toast.textContent = "↺ 기본 엔드포인트로 되돌림 (저장을 눌러야 적용)";
+        setTimeout(() => (toast.textContent = ""), 2500);
+      });
+
+      addBtn.addEventListener("click", () => addRow());
+
+      function showError(msg) {
+        toast.style.color = "#f04452";
+        toast.textContent = "⚠ " + msg;
+        setTimeout(() => {
+          toast.textContent = "";
+          toast.style.color = "";
+        }, 3000);
+      }
+
+      document.getElementById("save").addEventListener("click", async () => {
+        const rows = [...stocksDiv.children];
+        const stocks = [];
+        for (let i = 0; i < rows.length; i++) {
+          const r = rows[i];
+          const code = r.querySelector(".code").value.trim();
+          if (!code) continue;
+          const avg = Number(r.querySelector(".avg").value) || 0;
+          const qty = Number(r.querySelector(".qty").value) || 0;
+          // 평단가/수량은 입력 자체가 선택사항이지만, 입력할 거면 둘 다 있어야
+          // 수익률(±%)과 평가손익(±원)이 계산된다.
+          if (avg > 0 && qty <= 0) {
+            showError(`종목 ${i + 1}: 평단가를 입력하면 보유 수량도 입력해야 합니다.`);
+            return;
+          }
+          if (qty > 0 && avg <= 0) {
+            showError(`종목 ${i + 1}: 보유 수량을 입력하면 평단가도 입력해야 합니다.`);
+            return;
+          }
+          stocks.push({ code, avgPrice: avg, qty });
+        }
+        const intervalSec = Math.max(1, Number(intervalInput.value) || 2);
+        const endpoints = {
+          price: epPrice.value.trim(),
+          info: epInfo.value.trim(),
+          logo: epLogo.value.trim(),
+        };
+        await window.api.saveConfig({ stocks, intervalSec, endpoints });
+        toast.style.color = "";
+        toast.textContent = "✓ 저장되었습니다";
+        setTimeout(() => (toast.textContent = ""), 2000);
+      });
+
+      document.getElementById("cancel").addEventListener("click", () => window.api.closeSelf());
+
+      init();
+    </script>
+  </body>
+</html>

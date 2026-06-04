@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Malgun Gothic", "Segoe UI", sans-serif;
+        user-select: none;
+      }
+      html,
+      body {
+        background: transparent;
+        overflow: hidden;
+      }
+      #bar {
+        background: rgba(20, 22, 30, 0.72);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        padding: 8px 10px;
+        cursor: move;
+      }
+      .row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        height: 34px;
+      }
+      .logo {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: #2a2d36;
+        flex-shrink: 0;
+        object-fit: cover;
+      }
+      .name {
+        color: #e8eaed;
+        font-size: 12px;
+        font-weight: 600;
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .price {
+        color: #fff;
+        font-size: 12px;
+        font-weight: 700;
+        text-align: right;
+      }
+      .chg {
+        font-size: 11px;
+        font-weight: 700;
+        min-width: 66px;
+        text-align: right;
+        white-space: nowrap;
+      }
+      .tag {
+        display: inline-block;
+        font-size: 9px;
+        font-weight: 700;
+        color: #08240f;
+        background: #c4c7cc;
+        border-radius: 4px;
+        padding: 0 3px;
+        margin-right: 3px;
+        vertical-align: 1px;
+      }
+      .up {
+        color: #f04452;
+      }
+      .down {
+        color: #3485fa;
+      }
+      .flat {
+        color: #9aa0a6;
+      }
+      .empty {
+        color: #9aa0a6;
+        font-size: 11px;
+        text-align: center;
+        padding: 20px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="bar" title="드래그: 이동 · 더블클릭: 자세히 보기"></div>
+    <script>
+      const bar = document.getElementById("bar");
+
+      // 더블클릭 → 자세히 보기
+      bar.addEventListener("dblclick", () => window.api.openDetail());
+
+      // 드래그 → 위젯 이동 (창 자체를 화면 좌표 기준으로 옮긴다)
+      let dragging = false;
+      let lastX = 0;
+      let lastY = 0;
+      bar.addEventListener("mousedown", (e) => {
+        if (e.button !== 0) return; // 좌클릭만
+        dragging = true;
+        lastX = e.screenX;
+        lastY = e.screenY;
+        e.preventDefault();
+      });
+      window.addEventListener("mousemove", (e) => {
+        if (!dragging) return;
+        const dx = e.screenX - lastX;
+        const dy = e.screenY - lastY;
+        if (dx || dy) {
+          lastX = e.screenX;
+          lastY = e.screenY;
+          window.api.moveWidgetBy(dx, dy);
+        }
+      });
+      window.addEventListener("mouseup", () => {
+        if (!dragging) return;
+        dragging = false;
+        window.api.saveWidgetPos(); // 옮긴 위치 저장
+      });
+
+      function fmt(n) {
+        return n == null ? "-" : Number(n).toLocaleString("ko-KR");
+      }
+      function cls(v) {
+        if (v == null) return "flat";
+        return v > 0 ? "up" : v < 0 ? "down" : "flat";
+      }
+      function sign(v) {
+        if (v == null) return "";
+        return v > 0 ? "+" : "";
+      }
+
+      window.api.onData((data) => {
+        const stocks = (data.stocks || []).slice(0, 2); // 위젯은 최대 2개
+        if (!stocks.length) {
+          bar.innerHTML =
+            '<div class="empty">설정에서 종목을 추가하세요<br/>(트레이 우클릭 → 설정)</div>';
+          return;
+        }
+        bar.innerHTML = stocks
+          .map((s) => {
+            // 평단가를 넣었으면 내 수익률, 아니면 금일 등락률
+            const useProfit = s.profitRate != null;
+            const val = useProfit ? s.profitRate : s.dayChangeRate;
+            const c = cls(val);
+            const rate = val == null ? "-" : `${sign(val)}${val.toFixed(2)}%`;
+            const tag = useProfit ? '<span class="tag">내</span>' : "";
+            return `
+              <div class="row">
+                <img class="logo" src="${s.logoImageUrl}" onerror="this.style.visibility='hidden'" />
+                <span class="name">${s.name}</span>
+                <span class="price">${fmt(s.close)}</span>
+                <span class="chg ${c}">${tag}${rate}</span>
+              </div>`;
+          })
+          .join("");
+      });
+    </script>
+  </body>
+</html>

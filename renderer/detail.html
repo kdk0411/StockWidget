@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <title>StockWidget</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Malgun Gothic", "Segoe UI", sans-serif;
+      }
+      body {
+        background: #14161e;
+        color: #e8eaed;
+        padding: 14px;
+      }
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+      }
+      header h1 {
+        font-size: 15px;
+        font-weight: 700;
+      }
+      .hbtns {
+        display: flex;
+        gap: 6px;
+      }
+      header button {
+        background: #2a2d36;
+        color: #e8eaed;
+        border: none;
+        border-radius: 8px;
+        padding: 6px 12px;
+        font-size: 12px;
+        cursor: pointer;
+        white-space: nowrap;
+      }
+      #widgetBtn {
+        background: #22c55e;
+        color: #08240f;
+        font-weight: 700;
+      }
+      #widgetBtn:hover {
+        background: #2ad36a;
+      }
+      header button:hover {
+        background: #3a3d46;
+      }
+      .card {
+        background: #1b1e27;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 12px;
+        padding: 12px;
+        margin-bottom: 10px;
+      }
+      .top {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .logo {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: #2a2d36;
+        object-fit: cover;
+      }
+      .name {
+        font-size: 14px;
+        font-weight: 700;
+      }
+      .code {
+        font-size: 11px;
+        color: #9aa0a6;
+      }
+      .price {
+        margin-left: auto;
+        text-align: right;
+      }
+      .price .now {
+        font-size: 16px;
+        font-weight: 800;
+      }
+      .price .day {
+        font-size: 12px;
+        font-weight: 700;
+      }
+      .meta {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+        font-size: 12px;
+      }
+      .meta .label {
+        color: #9aa0a6;
+      }
+      .meta .val {
+        font-weight: 700;
+      }
+      .up {
+        color: #f04452;
+      }
+      .down {
+        color: #3485fa;
+      }
+      .flat {
+        color: #9aa0a6;
+      }
+      .empty {
+        text-align: center;
+        color: #9aa0a6;
+        padding: 60px 0;
+        font-size: 13px;
+        line-height: 1.7;
+      }
+      .updated {
+        text-align: center;
+        font-size: 11px;
+        color: #6b7077;
+        margin-top: 6px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>📈 보유 종목</h1>
+      <div class="hbtns">
+        <button id="widgetBtn">위젯으로 보기</button>
+        <button id="settingsBtn">설정</button>
+      </div>
+    </header>
+    <div id="list"></div>
+    <div class="updated" id="updated"></div>
+
+    <script>
+      document.getElementById("settingsBtn").addEventListener("click", () => window.api.openSettings());
+      document.getElementById("widgetBtn").addEventListener("click", () => window.api.showWidget());
+
+      function fmt(n) {
+        return n == null ? "-" : Number(n).toLocaleString("ko-KR");
+      }
+      function cls(v) {
+        if (v == null) return "flat";
+        return v > 0 ? "up" : v < 0 ? "down" : "flat";
+      }
+      function sign(v) {
+        return v != null && v > 0 ? "+" : "";
+      }
+
+      window.api.onData((data) => {
+        const list = document.getElementById("list");
+        const stocks = (data.stocks || []).slice(0, 4);
+        if (!stocks.length) {
+          list.innerHTML =
+            '<div class="empty">등록된 종목이 없습니다.<br/>[설정] 버튼을 눌러 종목과 평단가를 입력하세요.</div>';
+        } else {
+          list.innerHTML = stocks
+            .map((s) => {
+              const dayCls = cls(s.dayChangeRate);
+              const day =
+                s.dayChangeRate == null
+                  ? "-"
+                  : `${sign(s.dayChangeRate)}${s.dayChangeRate.toFixed(2)}%`;
+              const profCls = cls(s.profitRate);
+              const prof =
+                s.profitRate == null
+                  ? "평단 미설정"
+                  : `${sign(s.profitRate)}${s.profitRate.toFixed(2)}%`;
+              const qtyStr =
+                s.qty > 0
+                  ? `${Number(s.qty).toLocaleString("ko-KR", { maximumFractionDigits: 4 })}주`
+                  : "—";
+              // 평가손익(총액): 수량을 입력했을 때만 계산 가능
+              const profAmt =
+                s.profitAmount == null
+                  ? "수량 미설정"
+                  : `${sign(s.profitAmount)}${fmt(Math.round(s.profitAmount))}원`;
+              const profAmtCls = cls(s.profitAmount);
+              return `
+                <div class="card">
+                  <div class="top">
+                    <img class="logo" src="${s.logoImageUrl}" onerror="this.style.visibility='hidden'" />
+                    <div>
+                      <div class="name">${s.name}</div>
+                      <div class="code">${s.code}</div>
+                    </div>
+                    <div class="price">
+                      <div class="now">${fmt(s.close)}원</div>
+                      <div class="day ${dayCls}">${day}</div>
+                    </div>
+                  </div>
+                  <div class="meta">
+                    <span><span class="label">평단가</span> <span class="val">${fmt(s.avgPrice)}원</span></span>
+                    <span><span class="label">보유</span> <span class="val">${qtyStr}</span></span>
+                  </div>
+                  <div class="meta" style="border-top:none; padding-top:6px; margin-top:0;">
+                    <span><span class="label">수익률</span> <span class="val ${profCls}">${prof}</span></span>
+                    <span><span class="label">평가손익</span> <span class="val ${profAmtCls}">${profAmt}</span></span>
+                  </div>
+                </div>`;
+            })
+            .join("");
+        }
+        const u = data.updatedAt ? new Date(data.updatedAt).toLocaleTimeString("ko-KR") : "-";
+        document.getElementById("updated").textContent =
+          (data.error ? `⚠ ${data.error} · ` : "") + `갱신: ${u}`;
+      });
+    </script>
+  </body>
+</html>
