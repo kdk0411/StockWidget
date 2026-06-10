@@ -1,6 +1,6 @@
 {
   "name": "stockwidget",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "StockWidget - 윈도우 우측 하단 주식 시세 위젯",
   "main": "main.js",
   "author": "",
